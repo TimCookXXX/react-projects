@@ -1,27 +1,54 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import './App.scss'
+import Users from './components/Users'
+import Success from './components/Success'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [users, setUsers] = useState([])
+  const [isLoading, setLoading] = useState(true)
+  const [searchValue, setSearchValue] = useState('')
+  const [invites, setInvites] = useState([])
+  const [success, setSuccess] = useState(false)
 
-  const onClickPlus = () => {
-    setCount(count + 1)
+  useEffect(() => {
+    fetch('https://reqres.in/api/users')
+      .then((res) => res.json())
+      .then((json) => setUsers(json.data))
+      .catch((err) => console.warn(err))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const onChangeSearchValue = (event) => {
+    setSearchValue(event.target.value)
   }
 
-  const onClickMinus = () => {
-    if (count <= 0) {
-      return count
+  const onClickInvite = (id) => {
+    if (invites.includes(id)) {
+      setInvites((prev) => prev.filter((_id) => _id !== id))
     } else {
-      setCount(count - 1)
+      setInvites((prev) => [...prev, id])
     }
   }
 
-  return (  
-    <div className='counter'>
-      <h2 className='counter__title'>Счётчик:</h2>
-      <h1 className='counter__result'>{count}</h1>
-      <button className='counter__btn' onClick={onClickMinus}>Минус</button>
-      <button className='counter__btn' onClick={onClickPlus}>Плюс</button>
+  const onClickSendInvites = () => {
+    setSuccess(true)
+  }
+
+  return (
+    <div className="App">
+      {success ? (
+        <Success count={invites.length} />
+      ) : (
+        <Users
+          searchValue={searchValue}
+          onChangeSearchValue={onChangeSearchValue}
+          isLoading={isLoading}
+          items={users}
+          invites={invites}
+          onClickInvite={onClickInvite}
+          onClickSendInvites={onClickSendInvites}
+        />
+      )}
     </div>
   )
 }
